@@ -30,6 +30,7 @@ Required environment variables:
 ## What is included
 
 - Password-protected landing flow using signed HTTP-only cookies
+- Middleware-controlled dashboard route with no password in client code
 - Responsive dashboard shell for desktop, tablet, and mobile
 - Sidebar sections for platforms, inventory, logistics, ads, customers, finance, and support
 - Accessible landmarks, labels, focus states, and reduced-motion support

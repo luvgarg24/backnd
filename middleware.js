@@ -1,9 +1,11 @@
-import { next } from "@vercel/functions";
+import { createHmac, timingSafeEqual } from "node:crypto";
+import { readFileSync } from "node:fs";
 
 const COOKIE_NAME = "backnd_session";
 const SESSION_TTL_SECONDS = 60 * 60 * 12;
 
-const encoder = new TextEncoder();
+const LANDING_HTML = readFileSync(new URL("./index.html", import.meta.url), "utf8");
+const DASHBOARD_HTML = readFileSync(new URL("./dashboard-view.html", import.meta.url), "utf8");
 
 function getSecret() {
   return process.env.BACKND_SESSION_SECRET || process.env.BACKND_PASSWORD || "backnd-session-secret";
@@ -14,41 +16,31 @@ function getPassword() {
 }
 
 function base64UrlEncode(input) {
-  const bytes = input instanceof Uint8Array ? input : encoder.encode(input);
-  let binary = "";
-  bytes.forEach((byte) => {
-    binary += String.fromCharCode(byte);
-  });
-  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
+  return Buffer.from(input).toString("base64url");
 }
 
 function base64UrlDecode(value) {
-  const normalized = value.replaceAll("-", "+").replaceAll("_", "/");
-  const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
-  const binary = atob(padded);
-  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  return Buffer.from(value, "base64url").toString("utf8");
 }
 
-async function sign(payload) {
-  const key = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(getSecret()),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"]
-  );
-  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(payload));
-  return base64UrlEncode(new Uint8Array(signature));
+function sign(payload) {
+  return createHmac("sha256", getSecret()).update(payload).digest("base64url");
 }
 
-async function createSessionToken() {
+function safeEqual(left, right) {
+  const leftBuffer = Buffer.from(left);
+  const rightBuffer = Buffer.from(right);
+  return leftBuffer.length === rightBuffer.length && timingSafeEqual(leftBuffer, rightBuffer);
+}
+
+function createSessionToken() {
   const expiresAt = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
   const payload = base64UrlEncode(JSON.stringify({ expiresAt }));
-  const signature = await sign(payload);
+  const signature = sign(payload);
   return `${payload}.${signature}`;
 }
 
-async function isValidSession(cookieHeader) {
+function isValidSession(cookieHeader) {
   const cookie = cookieHeader
     ?.split(";")
     .map((part) => part.trim())
@@ -60,11 +52,11 @@ async function isValidSession(cookieHeader) {
   const [payload, signature] = token.split(".");
   if (!payload || !signature) return false;
 
-  const expectedSignature = await sign(payload);
-  if (signature !== expectedSignature) return false;
+  const expectedSignature = sign(payload);
+  if (!safeEqual(signature, expectedSignature)) return false;
 
   try {
-    const decoded = new TextDecoder().decode(base64UrlDecode(payload));
+    const decoded = base64UrlDecode(payload);
     const session = JSON.parse(decoded);
     return Number(session.expiresAt) > Math.floor(Date.now() / 1000);
   } catch {
@@ -98,10 +90,30 @@ function clearSessionCookie(response) {
   return response;
 }
 
+function htmlResponse(body) {
+  return new Response(body, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-store"
+    }
+  });
+}
+
 export default async function middleware(request) {
   const url = new URL(request.url);
   const pathname = url.pathname.replace(/\/$/, "") || "/";
-  const isAuthenticated = await isValidSession(request.headers.get("Cookie"));
+  const isAuthenticated = isValidSession(request.headers.get("Cookie"));
+
+  if (request.method !== "GET" && request.method !== "HEAD" && pathname !== "/login") {
+    return new Response("Method not allowed", {
+      status: 405,
+      headers: {
+        Allow: "GET, HEAD, POST",
+        "Cache-Control": "no-store"
+      }
+    });
+  }
 
   if (pathname === "/login" && request.method === "POST") {
     const formData = await request.formData();
@@ -110,12 +122,16 @@ export default async function middleware(request) {
 
     if (expectedPassword && password === expectedPassword) {
       const dashboardUrl = new URL("/dashboard.html", request.url);
-      return setSessionCookie(redirectTo(dashboardUrl, 303), await createSessionToken());
+      return setSessionCookie(redirectTo(dashboardUrl, 303), createSessionToken());
     }
 
     const landingUrl = new URL("/", request.url);
     landingUrl.searchParams.set("error", expectedPassword ? "1" : "config");
     return clearSessionCookie(redirectTo(landingUrl, 303));
+  }
+
+  if (pathname === "/login") {
+    return redirectTo(new URL("/", request.url), 303);
   }
 
   if (pathname === "/logout") {
@@ -134,9 +150,23 @@ export default async function middleware(request) {
     return redirectTo(new URL("/dashboard.html", request.url), 302);
   }
 
-  return next();
+  if (pathname === "/dashboard.html") {
+    return htmlResponse(DASHBOARD_HTML);
+  }
+
+  if (pathname === "/dashboard-view.html") {
+    return new Response("Not found", {
+      status: 404,
+      headers: {
+        "Cache-Control": "no-store"
+      }
+    });
+  }
+
+  return htmlResponse(LANDING_HTML);
 }
 
 export const config = {
-  matcher: ["/", "/login", "/logout", "/dashboard", "/dashboard.html"]
+  runtime: "nodejs",
+  matcher: ["/", "/login", "/logout", "/dashboard", "/dashboard.html", "/dashboard-view.html"]
 };
