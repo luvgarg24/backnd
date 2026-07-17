@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>backnd • Orders</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<link
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+rel="stylesheet"
+/>
+
+<style>
+
+:root{
+
+--bg:#f6f8fc;
+--card:#ffffff;
+--card2:#fbfcfe;
+
+--line:#e8edf5;
+
+--text:#121826;
+--muted:#6b7280;
+
+--blue:#2563eb;
+--green:#22c55e;
+--orange:#f59e0b;
+--red:#ef4444;
+
+--radius:18px;
+
+--shadow:
+0 10px 40px rgba(0,0,0,.05);
+
+}
+
+body.dark{
+
+--bg:#101318;
+
+--card:#171b22;
+
+--card2:#1b2028;
+
+--line:#2b313c;
+
+--text:#f5f7fb;
+
+--muted:#9ca3af;
+
+--shadow:
+0 20px 60px rgba(0,0,0,.45);
+
+}
+
+*{
+
+margin:0;
+padding:0;
+box-sizing:border-box;
+
+}
+
+body{
+
+font-family:Inter,sans-serif;
+
+background:var(--bg);
+
+color:var(--text);
+
+transition:.25s;
+
+}
+
+.layout{
+
+display:grid;
+
+grid-template-columns:260px 1fr;
+
+min-height:100vh;
+
+}
+
+
+
+
+/* ---------------- SIDEBAR ---------------- */
+
+.sidebar{
+
+background:var(--card);
+
+border-right:1px solid var(--line);
+
+padding:28px;
+
+display:flex;
+
+flex-direction:column;
+
+}
+
+.logo{
+
+font-size:28px;
+
+font-weight:900;
+
+margin-bottom:45px;
+
+letter-spacing:-1px;
+
+}
+
+.logo span{
+
+color:var(--blue);
+
+}
+
+nav{
+
+display:flex;
+
+flex-direction:column;
+
+gap:8px;
+
+}
+
+nav a{
+
+height:50px;
+
+display:flex;
+
+align-items:center;
+
+gap:14px;
+
+padding:0 18px;
+
+text-decoration:none;
+
+color:var(--muted);
+
+border-radius:14px;
+
+font-weight:600;
+
+transition:.2s;
+
+}
+
+nav a:hover{
+
+background:var(--bg);
+
+color:var(--text);
+
+}
+
+nav a.active{
+
+background:var(--blue);
+
+color:white;
+
+}
+
+.bottom{
+
+margin-top:auto;
+
+}
+
+
+
+
+/* ---------------- MAIN ---------------- */
+
+main{
+
+padding:34px;
+
+}
+
+.header{
+
+display:flex;
+
+justify-content:space-between;
+
+align-items:center;
+
+margin-bottom:34px;
+
+}
+
+.header h1{
+
+font-size:34px;
+
+font-weight:800;
+
+letter-spacing:-1px;
+
+}
+
+.header p{
+
+margin-top:8px;
+
+color:var(--muted);
+
+}
+
+.right{
+
+display:flex;
+
+align-items:center;
+
+gap:16px;
+
+}
+
+.search{
+
+width:340px;
+
+height:48px;
+
+background:var(--card);
+
+border:1px solid var(--line);
+
+border-radius:14px;
+
+display:flex;
+
+align-items:center;
+
+padding:0 18px;
+
+gap:12px;
+
+}
+
+.search input{
+
+border:none;
+
+outline:none;
+
+background:none;
+
+width:100%;
+
+font-size:14px;
+
+color:var(--text);
+
+}
+
+.theme{
+
+width:48px;
+
+height:48px;
+
+border-radius:14px;
+
+border:1px solid var(--line);
+
+background:var(--card);
+
+cursor:pointer;
+
+font-size:17px;
+
+}
+
+.profile{
+
+width:44px;
+
+height:44px;
+
+border-radius:50%;
+
+background:linear-gradient(135deg,#2563eb,#4f8cff);
+
+}
+
+
+
+
+/* ---------------- STATS ---------------- */
+
+.stats{
+
+display:grid;
+
+grid-template-columns:repeat(4,1fr);
+
+gap:20px;
+
+margin-bottom:28px;
+
+}
+
+.stat{
+
+background:var(--card);
+
+border:1px solid var(--line);
+
+border-radius:var(--radius);
+
+padding:24px;
+
+box-shadow:var(--shadow);
+
+}
+
+.stat span{
+
+display:block;
+
+font-size:13px;
+
+color:var(--muted);
+
+margin-bottom:10px;
+
+}
+
+.stat h2{
+
+font-size:34px;
+
+letter-spacing:-1px;
+
+}
+
+.stat small{
+
+display:block;
+
+margin-top:10px;
+
+color:var(--green);
+
+font-weight:600;
+
+}
+
+
+
+
+/* table and drawer in next chunk */
+
+</style>
+
+</head>
+
+<body>
+
+<div class="layout">
+
+<aside class="sidebar">
+
+<div class="logo">
+
+back<span>nd</span>
+
+</div>
+
+<nav>
+
+<a href="#">
+<i class="fa-solid fa-house"></i>
+Dashboard
+</a>
+
+<a class="active" href="#">
+<i class="fa-solid fa-box"></i>
+Orders
+</a>
+
+<a href="#">
+<i class="fa-solid fa-cubes"></i>
+Inventory
+</a>
+
+<a href="#">
+<i class="fa-solid fa-truck"></i>
+Logistics
+</a>
+
+<a href="#">
+<i class="fa-solid fa-chart-line"></i>
+Marketing
+</a>
+
+<a href="#">
+<i class="fa-solid fa-wallet"></i>
+Finance
+</a>
+
+<a href="#">
+<i class="fa-solid fa-users"></i>
+Customers
+</a>
+
+</nav>
+
+<div class="bottom">
+
+<nav>
+
+<a href="#">
+
+<i class="fa-solid fa-gear"></i>
+
+Settings
+
+</a>
+
+</nav>
+
+</div>
+
+</aside>
+
+<main>
+
+<div class="header">
+
+<div>
+
+<h1>
+
+Orders
+
+</h1>
+
+<p>
+
+Manage every order from every sales channel.
+
+</p>
+
+</div>
+
+<div class="right">
+
+<div class="search">
+
+<i class="fa-solid fa-magnifying-glass"></i>
+
+<input
+placeholder="Search orders..."
+>
+
+</div>
+
+<button
+class="theme"
+id="themeToggle">
+
+🌙
+
+</button>
+
+<div class="profile"></div>
+
+</div>
+
+</div>
+
+<div class="stats">
+
+<div class="stat">
+
+<span>
+
+Today's Orders
+
+</span>
+
+<h2>
+
+127
+
+</h2>
+
+<small>
+
+▲ 18%
+
+</small>
+
+</div>
+
+<div class="stat">
+
+<span>
+
+Revenue
+
+</span>
+
+<h2>
+
+₹2.84L
+
+</h2>
+
+<small>
+
+▲ 12%
+
+</small>
+
+</div>
+
+<div class="stat">
+
+<span>
+
+Pending
+
+</span>
+
+<h2>
+
+14
+
+</h2>
+
+<small>
+
+Needs Attention
+
+</small>
+
+</div>
+
+<div class="stat">
+
+<span>
+
+Delivered
+
+</span>
+
+<h2>
+
+96
+
+</h2>
+
+<small>
+
+On Track
+
+</small>
+
+</div>
+
+</div>
+<!-- ================= CONTENT ================= -->
+
+<style>
+
+.content{
+
+display:grid;
+
+grid-template-columns:1fr 380px;
+
+gap:24px;
+
+align-items:start;
+
+}
+
+.orders-card{
+
+background:var(--card);
+
+border:1px solid var(--line);
+
+border-radius:var(--radius);
+
+box-shadow:var(--shadow);
+
+overflow:hidden;
+
+}
+
+.toolbar{
+
+display:flex;
+
+justify-content:space-between;
+
+align-items:center;
+
+padding:20px 24px;
+
+border-bottom:1px solid var(--line);
+
+}
+
+.filters{
+
+display:flex;
+
+gap:10px;
+
+}
+
+.filters button{
+
+height:38px;
+
+padding:0 18px;
+
+border-radius:10px;
+
+border:1px solid var(--line);
+
+background:var(--bg);
+
+cursor:pointer;
+
+font-weight:600;
+
+color:var(--text);
+
+transition:.2s;
+
+}
+
+.filters button:hover{
+
+background:var(--blue);
+
+border-color:var(--blue);
+
+color:white;
+
+}
+
+.export{
+
+height:40px;
+
+padding:0 18px;
+
+border:none;
+
+border-radius:12px;
+
+background:var(--blue);
+
+color:white;
+
+font-weight:700;
+
+cursor:pointer;
+
+}
+
+table{
+
+width:100%;
+
+border-collapse:collapse;
+
+}
+
+thead{
+
+background:var(--card2);
+
+}
+
+th{
+
+padding:18px 24px;
+
+text-align:left;
+
+font-size:12px;
+
+letter-spacing:.08em;
+
+text-transform:uppercase;
+
+color:var(--muted);
+
+}
+
+td{
+
+padding:20px 24px;
+
+border-top:1px solid var(--line);
+
+font-size:14px;
+
+}
+
+tbody tr{
+
+cursor:pointer;
+
+transition:.18s;
+
+}
+
+tbody tr:hover{
+
+background:rgba(37,99,235,.05);
+
+}
+
+.customer{
+
+display:flex;
+
+flex-direction:column;
+
+gap:4px;
+
+}
+
+.customer strong{
+
+font-size:15px;
+
+}
+
+.customer small{
+
+color:var(--muted);
+
+}
+
+.badge{
+
+display:inline-flex;
+
+align-items:center;
+
+justify-content:center;
+
+padding:6px 12px;
+
+border-radius:999px;
+
+font-size:12px;
+
+font-weight:700;
+
+}
+
+.shopify{
+
+background:#dcfce7;
+
+color:#15803d;
+
+}
+
+.amazon{
+
+background:#fff7d6;
+
+color:#92400e;
+
+}
+
+.website{
+
+background:#dbeafe;
+
+color:#1d4ed8;
+
+}
+
+.myntra{
+
+background:#fae8ff;
+
+color:#a21caf;
+
+}
+
+.status{
+
+display:inline-flex;
+
+align-items:center;
+
+padding:6px 12px;
+
+border-radius:999px;
+
+font-size:12px;
+
+font-weight:700;
+
+}
+
+.processing{
+
+background:#fef3c7;
+
+color:#92400e;
+
+}
+
+.packed{
+
+background:#dbeafe;
+
+color:#1d4ed8;
+
+}
+
+.delivered{
+
+background:#dcfce7;
+
+color:#166534;
+
+}
+
+.pending{
+
+background:#fee2e2;
+
+color:#b91c1c;
+
+}
+
+.drawer{
+
+background:var(--card);
+
+border:1px solid var(--line);
+
+border-radius:var(--radius);
+
+box-shadow:var(--shadow);
+
+padding:28px;
+
+position:sticky;
+
+top:30px;
+
+}
+
+.drawer h2{
+
+font-size:22px;
+
+margin-bottom:6px;
+
+}
+
+.drawer p{
+
+color:var(--muted);
+
+margin-bottom:26px;
+
+}
+
+.section{
+
+margin-bottom:28px;
+
+}
+
+.section:last-child{
+
+margin-bottom:0;
+
+}
+
+.section h4{
+
+font-size:13px;
+
+text-transform:uppercase;
+
+letter-spacing:.08em;
+
+margin-bottom:14px;
+
+color:var(--muted);
+
+}
+
+.info{
+
+display:flex;
+
+justify-content:space-between;
+
+margin-bottom:12px;
+
+font-size:14px;
+
+}
+
+.action-btn{
+
+width:100%;
+
+height:46px;
+
+border:none;
+
+border-radius:12px;
+
+margin-top:12px;
+
+font-weight:700;
+
+cursor:pointer;
+
+}
+
+.primary{
+
+background:var(--blue);
+
+color:white;
+
+}
+
+.secondary{
+
+background:var(--bg);
+
+border:1px solid var(--line);
+
+color:var(--text);
+
+}
+
+</style>
+
+<div class="content">
+
+<div class="orders-card">
+
+<div class="toolbar">
+
+<div class="filters">
+
+<button>All</button>
+
+<button>Today</button>
+
+<button>Pending</button>
+
+<button>Delivered</button>
+
+</div>
+
+<button class="export">
+
+Export CSV
+
+</button>
+
+</div>
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Order</th>
+
+<th>Channel</th>
+
+<th>Status</th>
+
+<th>Total</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td>
+
+<div class="customer">
+
+<strong>#48391 • Rahul Sharma</strong>
+
+<small>2 items • Delhi</small>
+
+</div>
+
+</td>
+
+<td>
+
+<span class="badge website">
+
+Website
+
+</span>
+
+</td>
+
+<td>
+
+<span class="status processing">
+
+Processing
+
+</span>
+
+</td>
+
+<td>
+
+₹1,899
+
+</td>
+
+</tr>
+
+<tr>
+
+<td>
+
+<div class="customer">
+
+<strong>#48390 • Neha Gupta</strong>
+
+<small>1 item • Mumbai</small>
+
+</div>
+
+</td>
+
+<td>
+
+<span class="badge amazon">
+
+Amazon
+
+</span>
+
+</td>
+
+<td>
+
+<span class="status packed">
+
+Packed
+
+</span>
+
+</td>
+
+<td>
+
+₹699
+
+</td>
+
+</tr>
+
+<tr>
+
+<td>
+
+<div class="customer">
+
+<strong>#48389 • Arjun Mehta</strong>
+
+<small>3 items • Jaipur</small>
+
+</div>
+
+</td>
+
+<td>
+
+<span class="badge shopify">
+
+Shopify
+
+</span>
+
+</td>
+
+<td>
+
+<span class="status delivered">
+
+Delivered
+
+</span>
+
+</td>
+
+<td>
+
+₹2,499
+
+</td>
+
+</tr>
+
+<tr>
+
+<td>
+
+<div class="customer">
+
+<strong>#48388 • Priya Singh</strong>
+
+<small>1 item • Noida</small>
+
+</div>
+
+</td>
+
+<td>
+
+<span class="badge myntra">
+
+Myntra
+
+</span>
+
+</td>
+
+<td>
+
+<span class="status pending">
+
+Payment Pending
+
+</span>
+
+</td>
+
+<td>
+
+₹1,299
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+<aside class="drawer">
+
+<h2>
+
+Order #48391
+
+</h2>
+
+<p>
+
+Placed 12 minutes ago
+
+</p>
+
+<div class="section">
+
+<h4>
+
+Customer
+
+</h4>
+
+<div class="info">
+
+<span>Name</span>
+
+<strong>Rahul Sharma</strong>
+
+</div>
+
+<div class="info">
+
+<span>Phone</span>
+
+<strong>+91 XXXXX XXXXX</strong>
+
+</div>
+
+<div class="info">
+
+<span>Payment</span>
+
+<strong>Paid via UPI</strong>
+
+</div>
+
+</div>
+
+<div class="section">
+
+<h4>
+
+Items
+
+</h4>
+
+<div class="info">
+
+<span>Oversized Tee</span>
+
+<strong>₹999</strong>
+
+</div>
+
+<div class="info">
+
+<span>Black Hoodie</span>
+
+<strong>₹900</strong>
+
+</div>
+
+</div>
+
+<div class="section">
+
+<h4>
+
+Actions</h4>
+
+<button class="action-btn primary">
+
+Print Shipping Label
+
+</button>
+
+<button class="action-btn secondary">
+
+View Invoice
+
+</button>
+
+<button class="action-btn secondary">
+
+Mark as Shipped
+
+</button>
+
+</div>
+
+</aside>
+
+</div>
+<script>
+
+const themeToggle = document.getElementById("themeToggle");
+
+if(localStorage.getItem("theme") === "dark"){
+
+document.body.classList.add("dark");
+
+themeToggle.innerHTML="☀️";
+
+}
+
+themeToggle.onclick = () => {
+
+document.body.classList.toggle("dark");
+
+const dark=document.body.classList.contains("dark");
+
+themeToggle.innerHTML=dark ? "☀️" : "🌙";
+
+localStorage.setItem("theme",dark?"dark":"light");
+
+};
+
+
+
+
+
+/* ---------------- SAMPLE ORDER DATA ---------------- */
+
+const orders=[
+
+{
+
+id:"#48391",
+
+name:"Rahul Sharma",
+
+city:"Delhi",
+
+channel:"Website",
+
+status:"Processing",
+
+payment:"Paid via UPI",
+
+phone:"+91 98XXXXXX11",
+
+placed:"12 minutes ago",
+
+items:[
+
+["Oversized Tee","₹999"],
+
+["Black Hoodie","₹900"]
+
+]
+
+},
+
+{
+
+id:"#48390",
+
+name:"Neha Gupta",
+
+city:"Mumbai",
+
+channel:"Amazon",
+
+status:"Packed",
+
+payment:"Amazon Pay",
+
+phone:"+91 99XXXXXX20",
+
+placed:"28 minutes ago",
+
+items:[
+
+["Classic Tee","₹699"]
+
+]
+
+},
+
+{
+
+id:"#48389",
+
+name:"Arjun Mehta",
+
+city:"Jaipur",
+
+channel:"Shopify",
+
+status:"Delivered",
+
+payment:"COD",
+
+phone:"+91 97XXXXXX55",
+
+placed:"Yesterday",
+
+items:[
+
+["Oversized Tee","₹999"],
+
+["Acid Wash Tee","₹1500"]
+
+]
+
+},
+
+{
+
+id:"#48388",
+
+name:"Priya Singh",
+
+city:"Noida",
+
+channel:"Myntra",
+
+status:"Payment Pending",
+
+payment:"Pending",
+
+phone:"+91 96XXXXXX40",
+
+placed:"2 hours ago",
+
+items:[
+
+["Black Hoodie","₹1299"]
+
+]
+
+}
+
+];
+
+
+
+const rows=document.querySelectorAll("tbody tr");
+
+const drawer=document.querySelector(".drawer");
+
+
+
+rows.forEach((row,index)=>{
+
+row.addEventListener("click",()=>{
+
+const o=orders[index];
+
+let itemsHTML="";
+
+o.items.forEach(item=>{
+
+itemsHTML+=`
+
+<div class="info">
+
+<span>${item[0]}</span>
+
+<strong>${item[1]}</strong>
+
+</div>
+
+`;
+
+});
+
+drawer.innerHTML=`
+
+<h2>${o.id}</h2>
+
+<p>Placed ${o.placed}</p>
+
+<div class="section">
+
+<h4>Customer</h4>
+
+<div class="info">
+
+<span>Name</span>
+
+<strong>${o.name}</strong>
+
+</div>
+
+<div class="info">
+
+<span>Phone</span>
+
+<strong>${o.phone}</strong>
+
+</div>
+
+<div class="info">
+
+<span>City</span>
+
+<strong>${o.city}</strong>
+
+</div>
+
+<div class="info">
+
+<span>Channel</span>
+
+<strong>${o.channel}</strong>
+
+</div>
+
+<div class="info">
+
+<span>Payment</span>
+
+<strong>${o.payment}</strong>
+
+</div>
+
+<div class="info">
+
+<span>Status</span>
+
+<strong>${o.status}</strong>
+
+</div>
+
+</div>
+
+<div class="section">
+
+<h4>Items</h4>
+
+${itemsHTML}
+
+</div>
+
+<div class="section">
+
+<h4>Actions</h4>
+
+<button class="action-btn primary">
+
+Print Shipping Label
+
+</button>
+
+<button class="action-btn secondary">
+
+View Invoice
+
+</button>
+
+<button class="action-btn secondary">
+
+Mark as Shipped
+
+</button>
+
+</div>
+
+`;
+
+});
+
+});
+
+</script>
+
+</main>
+
+</div>
+
+</body>
+
+</html>
