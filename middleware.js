@@ -30,7 +30,10 @@ function sign(payload) {
 function safeEqual(left, right) {
   const leftBuffer = Buffer.from(left);
   const rightBuffer = Buffer.from(right);
-  return leftBuffer.length === rightBuffer.length && timingSafeEqual(leftBuffer, rightBuffer);
+  return (
+    leftBuffer.length === rightBuffer.length &&
+    timingSafeEqual(leftBuffer, rightBuffer)
+  );
 }
 
 function createSessionToken() {
@@ -50,9 +53,11 @@ function isValidSession(cookieHeader) {
 
   const token = cookie.slice(COOKIE_NAME.length + 1);
   const [payload, signature] = token.split(".");
+
   if (!payload || !signature) return false;
 
   const expectedSignature = sign(payload);
+
   if (!safeEqual(signature, expectedSignature)) return false;
 
   try {
@@ -105,7 +110,11 @@ export default async function middleware(request) {
   const pathname = url.pathname.replace(/\/$/, "") || "/";
   const isAuthenticated = isValidSession(request.headers.get("Cookie"));
 
-  if (request.method !== "GET" && request.method !== "HEAD" && pathname !== "/login") {
+  if (
+    request.method !== "GET" &&
+    request.method !== "HEAD" &&
+    pathname !== "/login"
+  ) {
     return new Response("Method not allowed", {
       status: 405,
       headers: {
@@ -115,18 +124,25 @@ export default async function middleware(request) {
     });
   }
 
+  // Handle login
   if (pathname === "/login" && request.method === "POST") {
     const formData = await request.formData();
     const password = String(formData.get("password") || "");
     const expectedPassword = getPassword();
 
     if (expectedPassword && password === expectedPassword) {
-      const dashboardUrl = new URL("/dashboard.html", request.url);
-      return setSessionCookie(redirectTo(dashboardUrl, 303), createSessionToken());
+      return setSessionCookie(
+        redirectTo(new URL("/dashboard", request.url), 303),
+        createSessionToken()
+      );
     }
 
     const landingUrl = new URL("/", request.url);
-    landingUrl.searchParams.set("error", expectedPassword ? "1" : "config");
+    landingUrl.searchParams.set(
+      "error",
+      expectedPassword ? "1" : "config"
+    );
+
     return clearSessionCookie(redirectTo(landingUrl, 303));
   }
 
@@ -135,25 +151,27 @@ export default async function middleware(request) {
   }
 
   if (pathname === "/logout") {
-    return clearSessionCookie(redirectTo(new URL("/", request.url), 303));
+    return clearSessionCookie(
+      redirectTo(new URL("/", request.url), 303)
+    );
   }
 
+  // Already logged in
   if (pathname === "/" && isAuthenticated) {
-    return redirectTo(new URL("/dashboard.html", request.url), 302);
+    return redirectTo(new URL("/dashboard", request.url), 302);
   }
 
-  if ((pathname === "/dashboard" || pathname === "/dashboard.html") && !isAuthenticated) {
+  // Protect dashboard
+  if (pathname === "/dashboard" && !isAuthenticated) {
     return redirectTo(new URL("/", request.url), 302);
   }
 
+  // Serve dashboard
   if (pathname === "/dashboard") {
-    return redirectTo(new URL("/dashboard.html", request.url), 302);
-  }
-
-  if (pathname === "/dashboard.html") {
     return htmlResponse(DASHBOARD_HTML);
   }
 
+  // Prevent direct access
   if (pathname === "/dashboard-view.html") {
     return new Response("Not found", {
       status: 404,
@@ -163,10 +181,16 @@ export default async function middleware(request) {
     });
   }
 
+  // Landing page
   return htmlResponse(LANDING_HTML);
 }
 
 export const config = {
   runtime: "nodejs",
-  matcher: ["/", "/login", "/logout", "/dashboard", "/dashboard.html", "/dashboard-view.html"]
+  matcher: [
+    "/",
+    "/login",
+    "/logout",
+    "/dashboard"
+  ]
 };
