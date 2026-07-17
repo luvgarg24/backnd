@@ -1,0 +1,22 @@
+{
+  "name": "backnd",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A polished D2C management dashboard for brand operators.",
+  "scripts": {
+    "dev": "python3 -m http.server 4174",
+    "start": "python3 -m http.server 4174"
+  },
+  "dependencies": {
+    "@vercel/functions": "3.7.5"
+  },
+  "keywords": [
+    "d2c",
+    "dashboard",
+    "commerce",
+    "operations"
+  ],
+  "author": "",
+  "license": "UNLICENSED"
+}
